@@ -1,12 +1,12 @@
 <?php
 /*!
- * yii2 extension - component - active record
+ * yii2 - component - active record
  * xiewulong <xiewulong@vip.qq.com>
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
  * update: 2016/8/7
- * version: 0.0.1
+ * since: 0.0.1
  */
 
 namespace yii\components;
