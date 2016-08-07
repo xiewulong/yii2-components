@@ -1,0 +1,24 @@
+{
+	"name": "xiewulong/yii2-components",
+	"description": "yii2 components",
+	"keywords": ["yii2", "xiewulong", "components"],
+	"type": "yii2-extension",
+	"license": "MIT",
+	"support": {
+		"issues": "https://github.com/xiewulong/yii2-components/issues",
+		"wiki": "https://github.com/xiewulong/yii2-components/wiki",
+		"source": "https://github.com/xiewulong/yii2-components"
+	},
+	"authors": [
+		{
+			"name": "xiewulong",
+			"email": "xiewulong@vip.qq.com"
+		}
+    ],
+    "require": {
+        "yiisoft/yii2": ">=2.0.6"
+    },
+	"autoload": {
+		"psr-4": {"yii\\components\\": ""}
+	}
+}
