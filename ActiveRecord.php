@@ -1,6 +1,6 @@
 <?php
 /*!
- * yii2 extension - active record - component
+ * yii2 extension - component - active record
  * xiewulong <xiewulong@vip.qq.com>
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE

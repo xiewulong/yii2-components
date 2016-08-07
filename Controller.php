@@ -1,6 +1,6 @@
 <?php
 /*!
- * yii2 extension - controller - component
+ * yii2 extension - component - controller
  * xiewulong <xiewulong@vip.qq.com>
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
