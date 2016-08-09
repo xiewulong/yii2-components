@@ -40,7 +40,9 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 * @return {string|null}
 	 */
 	public function getFirstErrorInFirstErrors() {
-		return array_shift($this->firstErrors);
+		$firstErrors = $this->firstErrors;
+
+		return array_shift($firstErrors);
 	}
 
 }
