@@ -14,10 +14,11 @@
 			"name": "xiewulong",
 			"email": "xiewulong@vip.qq.com"
 		}
-    ],
-    "require": {
-        "yiisoft/yii2": ">=2.0.6"
-    },
+	],
+	"require": {
+		"yiisoft/yii2": ">=2.0.6",
+		"xiewulong/yii2-fileupload": "*"
+	},
 	"autoload": {
 		"psr-4": {"yii\\components\\": ""}
 	}
