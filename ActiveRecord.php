@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/11
+ * update: 2016/8/13
  * since: 0.0.1
  */
 
@@ -100,6 +100,16 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 		$firstErrors = $this->firstErrors;
 
 		return array_shift($firstErrors);
+	}
+
+	/**
+	 * Return status text
+	 *
+	 * @since 0.0.1
+	 * @return {string|null}
+	 */
+	public function getStatusText() {
+		return isset($this->_statuses) && isset($this->_statuses[$this->status]) ? $this->_statuses[$this->status] : null;
 	}
 
 }
