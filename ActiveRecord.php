@@ -12,14 +12,89 @@
 namespace yii\components;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\validators\FileValidator;
+use yii\validators\RangeValidator;
 use yii\web\UploadedFile;
 
 class ActiveRecord extends \yii\db\ActiveRecord {
 
+	private $_attributeItemList = [];
+
 	// private $_activeFileValidator;
 
 	private $_firstErrorAttribute = false;
+
+	/**
+	 * Return attribute item list
+	 *
+	 * @since 0.0.1
+	 * @param {string} $attribute
+	 * @return {array}
+	 */
+	private function getAttributeItemList($attribute) {
+		if(!isset($this->_attributeItemList[$attribute])) {
+			$list = [];
+			$_attribute = $attribute . 'Items';
+			if($this->hasMethod($_attribute)) {
+				$_default = $this->$_attribute();
+				if($_default && is_array($_default)) {
+					$_scenario = [];
+					foreach($this->getActiveValidators($attribute) as $validator) {
+						if($validator instanceof RangeValidator) {
+							$_scenario = ArrayHelper::merge($_scenario, ArrayHelper::filter($_default, $validator->range));
+						}
+					}
+					$list[$this->scenario] = array_unique($_scenario);
+					$list['_default'] = $_default;
+				}
+			}
+			$this->_attributeItemList[$attribute] = $list;
+		}
+
+		return $this->_attributeItemList[$attribute];
+	}
+
+	/**
+	 * Return attribute items
+	 *
+	 * @since 0.0.1
+	 * @param {string} $attribute
+	 * @param {string} [$scenario]
+	 * @return {array}
+	 */
+	public function getAttributeItems($attribute, $allScenario = false) {
+		$scenario = $allScenario ? '_default' : $this->scenario;
+		$items = $this->getAttributeItemList($attribute);
+
+		return isset($items[$scenario]) ? $items[$scenario] : [];
+	}
+
+	/**
+	 * Return attribute items
+	 *
+	 * @since 0.0.1
+	 * @param {string} $attribute
+	 * @return {array}
+	 */
+	public static function defaultAttributeItems($attribute) {
+		$static = new static;
+
+		return $static->getAttributeItems($attribute);
+	}
+
+	/**
+	 * Return status text
+	 *
+	 * @since 0.0.1
+	 * @param {string} $attribute
+	 * @return {string|null}
+	 */
+	public function getAttributeText($attribute) {
+		$items = $this->getAttributeItems($attribute, true);
+
+		return isset($items[$this->$attribute]) ? $items[$this->$attribute] : null;
+	}
 
 	/**
 	 * @inheritdoc
@@ -100,16 +175,6 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 		$firstErrors = $this->firstErrors;
 
 		return array_shift($firstErrors);
-	}
-
-	/**
-	 * Return status text
-	 *
-	 * @since 0.0.1
-	 * @return {string|null}
-	 */
-	public function getStatusText() {
-		return isset($this->_statuses) && isset($this->_statuses[$this->status]) ? $this->_statuses[$this->status] : null;
 	}
 
 }
