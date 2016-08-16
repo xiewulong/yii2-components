@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/13
+ * update: 2016/8/16
  * since: 0.0.1
  */
 
@@ -15,6 +15,7 @@ use Yii;
 use yii\helpers\ArrayHelper;
 use yii\validators\FileValidator;
 use yii\validators\RangeValidator;
+use yii\web\Cookie;
 use yii\web\UploadedFile;
 
 class ActiveRecord extends \yii\db\ActiveRecord {
@@ -35,7 +36,7 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	private function getAttributeItemList($attribute) {
 		if(!isset($this->_attributeItemList[$attribute])) {
 			$list = [];
-			$_attribute = $attribute . 'Items';
+			$_attribute = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $attribute)))) . 'Items';
 			if($this->hasMethod($_attribute)) {
 				$_default = $this->$_attribute();
 				if($_default && is_array($_default)) {
@@ -175,6 +176,57 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 		$firstErrors = $this->firstErrors;
 
 		return array_shift($firstErrors);
+	}
+
+	/**
+	 * Add pv and uv when visited
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	public function visitedHandler() {
+		if($this->scenario != 'visited' || !$this->validate()) {
+			return false;
+		}
+
+		if($this->pvRuleCheck()) {
+			$this->pv += 1;
+		}
+		if($this->uvRuleCheck(static::className() . '\\' . $this->id)) {
+			$this->uv += 1;
+		}
+
+		return $this->save(false);
+	}
+
+	/**
+	 * Check if it can increase pv
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	protected function pvRuleCheck() {
+		return !\Yii::$app->request->isPost && !\Yii::$app->request->isAjax;
+	}
+
+	/**
+	 * Check if it can increase uv
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	protected function uvRuleCheck($name) {
+		if(!\Yii::$app->request->cookies->has($name)) {
+			$cookie = new Cookie([
+				'name' => $name,
+				'value' => true,
+				'expire' => strtotime(date('Y-m-d', time() + 60 * 60 * 24)),
+			]);
+			\Yii::$app->response->cookies->add($cookie);
+			return true;
+		}
+
+		return false;
 	}
 
 }
