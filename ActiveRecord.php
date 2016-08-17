@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/16
+ * update: 2016/8/17
  * since: 0.0.1
  */
 
@@ -13,6 +13,7 @@ namespace yii\components;
 
 use Yii;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 use yii\validators\FileValidator;
 use yii\validators\RangeValidator;
 use yii\web\Cookie;
@@ -20,40 +21,53 @@ use yii\web\UploadedFile;
 
 class ActiveRecord extends \yii\db\ActiveRecord {
 
-	private $_attributeItemList = [];
+	private $_attributeItemTypes = [
+		'Name',
+		'Unsupport',
+	];
+
+	private $_attributeNameItemsList = [];
+
+	private $_attributeUnsupportItemsList = [];
 
 	// private $_activeFileValidator;
 
 	private $_firstErrorAttribute = false;
 
 	/**
-	 * Return attribute item list
+	 * Cache attribute items
 	 *
 	 * @since 0.0.1
 	 * @param {string} $attribute
-	 * @return {array}
+	 * @return {none}
 	 */
-	private function getAttributeItemList($attribute) {
-		if(!isset($this->_attributeItemList[$attribute])) {
-			$list = [];
-			$_attribute = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $attribute)))) . 'Items';
-			if($this->hasMethod($_attribute)) {
-				$_default = $this->$_attribute();
-				if($_default && is_array($_default)) {
-					$_scenario = [];
-					foreach($this->getActiveValidators($attribute) as $validator) {
-						if($validator instanceof RangeValidator) {
-							$_scenario = ArrayHelper::merge($_scenario, ArrayHelper::filter($_default, $validator->range));
-						}
+	private function cacheAttributeItems($attribute) {
+		$nameItems = [];
+		$unsupportItems = [];
+
+		$_attribute = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $attribute)))) . 'Items';
+		if($this->hasMethod($_attribute)) {
+			$attributeitems = $this->$_attribute();
+
+			$_defaultNameItems = $attributeitems[0];
+			if($_defaultNameItems && is_array($_defaultNameItems)) {
+				$_scenario = [];
+				foreach($this->getActiveValidators($attribute) as $validator) {
+					if($validator instanceof RangeValidator) {
+						$_scenario = ArrayHelper::merge($_scenario, ArrayHelper::filter($_defaultNameItems, $validator->range));
 					}
-					$list[$this->scenario] = array_unique($_scenario);
-					$list['_default'] = $_default;
 				}
+				$nameItems[$this->scenario] = array_unique($_scenario);
+				$nameItems['_default'] = $_defaultNameItems;
 			}
-			$this->_attributeItemList[$attribute] = $list;
+
+			if(isset($attributeitems[1]) && is_array($attributeitems[1])) {
+				$unsupportItems = $attributeitems[1];
+			}
 		}
 
-		return $this->_attributeItemList[$attribute];
+		$this->_attributeNameItemsList[$attribute] = $nameItems;
+		$this->_attributeUnsupportItemsList[$attribute] = $unsupportItems;
 	}
 
 	/**
@@ -61,14 +75,27 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 *
 	 * @since 0.0.1
 	 * @param {string} $attribute
+	 * @param {int} [$type]
 	 * @param {string} [$scenario]
 	 * @return {array}
 	 */
-	public function getAttributeItems($attribute, $allScenario = false) {
-		$scenario = $allScenario ? '_default' : $this->scenario;
-		$items = $this->getAttributeItemList($attribute);
+	public function getAttributeItems($attribute, $type = 0, $json = false, $default = false) {
+		$cacheName = '_attribute' . $this->_attributeItemTypes[$type] . 'ItemsList';
+		if(!isset($this->$cacheName[$attribute])) {
+			$this->cacheAttributeItems($attribute);
+		}
 
-		return isset($items[$scenario]) ? $items[$scenario] : [];
+		if($type) {
+			$items = $this->$cacheName[$attribute];
+
+			return $json ? Json::encode($items) : $items;
+		}
+
+		$scenario = $default ? '_default' : $this->scenario;
+		$attributeItems = $this->$cacheName[$attribute];
+		$items = isset($attributeItems[$scenario]) ? $attributeItems[$scenario] : [];
+
+		return $json ? Json::encode($items) : $items;
 	}
 
 	/**
@@ -78,10 +105,10 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 * @param {string} $attribute
 	 * @return {array}
 	 */
-	public static function defaultAttributeItems($attribute) {
+	public static function defaultAttributeItems($attribute, $type = 0, $json = false) {
 		$static = new static;
 
-		return $static->getAttributeItems($attribute);
+		return $static->getAttributeItems($attribute, $type, $json, true);
 	}
 
 	/**
@@ -92,7 +119,7 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 * @return {string|null}
 	 */
 	public function getAttributeText($attribute) {
-		$items = $this->getAttributeItems($attribute, true);
+		$items = $this->getAttributeItems($attribute, 0, false, true);
 
 		return isset($items[$this->$attribute]) ? $items[$this->$attribute] : null;
 	}
