@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/17
+ * update: 2016/8/18
  * since: 0.0.1
  */
 
@@ -33,6 +33,91 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	// private $_activeFileValidator;
 
 	private $_firstErrorAttribute = false;
+
+	private $statisticsKey = 'Statistics';
+
+	protected $statisticsEnable = false;
+
+	/**
+	 * @inheritdoc
+	 */
+	public function scenarios() {
+		$scenarios = parent::scenarios();
+
+		$scenarios[$this->statisticsKey] = [
+			'pv',
+			'uv',
+		];
+
+		return $scenarios;
+	}
+
+	/**
+	 * Check if it can increase page view
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	protected function pvRuleCheck() {
+		return !\Yii::$app->request->isPost && !\Yii::$app->request->isAjax;
+	}
+
+	/**
+	 * Check if it can increase unique visitor
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	protected function uvRuleCheck() {
+		$name = static::className() . '\\' . $this->id . '\\' . $this->scenario;
+		if(!\Yii::$app->request->cookies->has($name)) {
+			$cookie = new Cookie([
+				'name' => $name,
+				'value' => true,
+				'expire' => strtotime(date('Y-m-d', time() + 60 * 60 * 24)),
+			]);
+			\Yii::$app->response->cookies->add($cookie);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Add pv and uv when accessed
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	public function accessedHandler() {
+		if(!$this->statisticsEnable
+			|| $this->scenario != $this->statisticsKey
+			|| !$this->validate()) {
+			return false;
+		}
+
+		if($this->pvRuleCheck()) {
+			$this->pv += 1;
+		}
+		if($this->uvRuleCheck()) {
+			$this->uv += 1;
+		}
+
+		return $this->save(false);
+	}
+
+	/**
+	 * Data accessed
+	 *
+	 * @since 0.0.1
+	 * @return {boolean}
+	 */
+	public function accessed() {
+		$this->scenario = $this->statisticsKey;
+		$this->accessedHandler();
+
+		return $this;
+	}
 
 	/**
 	 * Cache attribute items
@@ -203,57 +288,6 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 		$firstErrors = $this->firstErrors;
 
 		return array_shift($firstErrors);
-	}
-
-	/**
-	 * Add pv and uv when visited
-	 *
-	 * @since 0.0.1
-	 * @return {boolean}
-	 */
-	public function visitedHandler() {
-		if($this->scenario != 'visited' || !$this->validate()) {
-			return false;
-		}
-
-		if($this->pvRuleCheck()) {
-			$this->pv += 1;
-		}
-		if($this->uvRuleCheck(static::className() . '\\' . $this->id)) {
-			$this->uv += 1;
-		}
-
-		return $this->save(false);
-	}
-
-	/**
-	 * Check if it can increase pv
-	 *
-	 * @since 0.0.1
-	 * @return {boolean}
-	 */
-	protected function pvRuleCheck() {
-		return !\Yii::$app->request->isPost && !\Yii::$app->request->isAjax;
-	}
-
-	/**
-	 * Check if it can increase uv
-	 *
-	 * @since 0.0.1
-	 * @return {boolean}
-	 */
-	protected function uvRuleCheck($name) {
-		if(!\Yii::$app->request->cookies->has($name)) {
-			$cookie = new Cookie([
-				'name' => $name,
-				'value' => true,
-				'expire' => strtotime(date('Y-m-d', time() + 60 * 60 * 24)),
-			]);
-			\Yii::$app->response->cookies->add($cookie);
-			return true;
-		}
-
-		return false;
 	}
 
 }
