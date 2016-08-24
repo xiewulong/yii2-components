@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/18
+ * update: 2016/8/20
  * since: 0.0.1
  */
 
@@ -69,7 +69,8 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 * @return {boolean}
 	 */
 	protected function uvRuleCheck() {
-		$name = static::className() . '\\' . $this->id . '\\' . $this->scenario;
+		$name = static::className() . '\\' . $this->id . '\\' . $this->statisticsKey;
+		// print_r(\Yii::$app->request->cookies);
 		if(!\Yii::$app->request->cookies->has($name)) {
 			$cookie = new Cookie([
 				'name' => $name,
