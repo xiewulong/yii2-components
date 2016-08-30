@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/20
+ * update: 2016/8/30
  * since: 0.0.1
  */
 
@@ -111,11 +111,14 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 * Data accessed
 	 *
 	 * @since 0.0.1
-	 * @return {boolean}
+	 * @param {boolean} $statisticsEnable
+	 * @return {object}
 	 */
-	public function accessed() {
-		$this->scenario = $this->statisticsKey;
-		$this->accessedHandler();
+	public function accessed($statisticsEnable = true) {
+		if($statisticsEnable) {
+			$this->scenario = $this->statisticsKey;
+			$this->accessedHandler();
+		}
 
 		return $this;
 	}
