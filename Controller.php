@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/7
+ * update: 2016/9/2
  * since: 0.0.1
  */
 
@@ -20,7 +20,7 @@ class Controller extends \yii\web\Controller {
 
 		// set referrer from request
 		if($referrer = \Yii::$app->request->get('referrer')) {
-			\Yii::$app->user->setReturnUrl($referrer);
+			\Yii::$app->user->returnUrl = $referrer;
 		}
 	}
 

@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/7
+ * update: 2016/9/2
  * since: 0.0.1
  */
 
@@ -23,7 +23,7 @@ class Module extends \yii\base\Module {
 	/**
 	 * views path
 	 */
-	public $viewsPath;
+	public $customViewsPath;
 
 	/**
 	 * @inheritdoc
@@ -33,8 +33,8 @@ class Module extends \yii\base\Module {
 
 		$this->registerTranslations();
 
-		if($this->viewsPath) {
-			$this->setViewPath($this->viewsPath);
+		if($this->customViewsPath) {
+			$this->viewPath = $this->customViewsPath;
 		}
 	}
 
