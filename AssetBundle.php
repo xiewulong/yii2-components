@@ -20,7 +20,7 @@ class AssetBundle extends \yii\web\AssetBundle {
 	public function init() {
 		parent::init();
 
-		if(YII_ENV == 'prod' || \Yii::$app->request->get('assets') == 'minimal') {
+		if(YII_ENV == 'prod' || \Yii::$app->request->get('assets') == 'minify') {
 			$this->minimal = '.min';
 		}
 	}
