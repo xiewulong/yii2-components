@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/9/5
- * update: 2016/9/5
+ * update: 2016/10/14
  * since: 0.0.1
  */
 
@@ -20,7 +20,7 @@ class AssetBundle extends \yii\web\AssetBundle {
 	public function init() {
 		parent::init();
 
-		if(YII_ENV == 'prod' || \Yii::$app->request->get('assets') == 'minify') {
+		if(YII_ENV == 'prod' || \Yii::$app->request->get('assets') == 'min') {
 			$this->minimal = '.min';
 		}
 	}
