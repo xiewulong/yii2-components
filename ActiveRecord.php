@@ -14,9 +14,7 @@ namespace yii\components;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
-use yii\validators\FileValidator;
 use yii\validators\RangeValidator;
-use yii\web\Cookie;
 
 class ActiveRecord extends \yii\db\ActiveRecord {
 
