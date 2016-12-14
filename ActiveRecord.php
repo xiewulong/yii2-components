@@ -5,7 +5,7 @@
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
  * create: 2016/8/7
- * update: 2016/8/30
+ * update: 2016/12/14
  * since: 0.0.1
  */
 
@@ -17,7 +17,6 @@ use yii\helpers\Json;
 use yii\validators\FileValidator;
 use yii\validators\RangeValidator;
 use yii\web\Cookie;
-use yii\web\UploadedFile;
 
 class ActiveRecord extends \yii\db\ActiveRecord {
 
@@ -30,11 +29,9 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 
 	private $_attributeUnsupportItemsList = [];
 
-	// private $_activeFileValidator;
-
 	private $_firstErrorAttribute = false;
 
-	private $statisticsKey = 'Statistics';
+	private $statisticsParam = '_statistics';
 
 	protected $statisticsEnable = false;
 
@@ -44,7 +41,7 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	public function scenarios() {
 		$scenarios = parent::scenarios();
 
-		$scenarios[$this->statisticsKey] = [
+		$scenarios[$this->statisticsParam] = [
 			'pv',
 			'uv',
 		];
@@ -69,15 +66,21 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 * @return {boolean}
 	 */
 	protected function uvRuleCheck() {
-		$name = static::className() . '\\' . $this->id . '\\' . $this->statisticsKey;
-		// print_r(\Yii::$app->request->cookies);
-		if(!\Yii::$app->request->cookies->has($name)) {
-			$cookie = new Cookie([
-				'name' => $name,
-				'value' => true,
-				'expire' => strtotime(date('Y-m-d', time() + 60 * 60 * 24)),
-			]);
-			\Yii::$app->response->cookies->add($cookie);
+		$expire = strtotime(date('Y-m-d', time() + 60 * 60 * 24));
+		$item = strtr(static::classname(), '\\', '_') . '_' . $this->id;
+
+		$session = \Yii::$app->session->get($this->statisticsParam);
+		if(!\Yii::$app->session->has($this->statisticsParam) || $session['expire'] != $expire) {
+			$session = [
+				'expire' => $expire,
+				'items' => [],
+			];
+		}
+
+		if(!isset($session['items'][$item])) {
+			$session['items'][$item] = true;
+			\Yii::$app->session->set($this->statisticsParam, $session);
+
 			return true;
 		}
 
@@ -92,16 +95,16 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 */
 	public function accessedHandler() {
 		if(!$this->statisticsEnable
-			|| $this->scenario != $this->statisticsKey
+			|| $this->scenario != $this->statisticsParam
 			|| !$this->validate()) {
 			return false;
 		}
 
 		if($this->pvRuleCheck()) {
-			$this->pv += 1;
+			$this->pv++;
 		}
 		if($this->uvRuleCheck()) {
-			$this->uv += 1;
+			$this->uv++;
 		}
 
 		return $this->save(false);
@@ -116,7 +119,7 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 	 */
 	public function accessed($statisticsEnable = true) {
 		if($statisticsEnable) {
-			$this->scenario = $this->statisticsKey;
+			$this->scenario = $this->statisticsParam;
 			$this->accessedHandler();
 		}
 
@@ -212,59 +215,6 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 
 		return isset($items[$this->$attribute]) ? $items[$this->$attribute] : null;
 	}
-
-	/**
-	 * @inheritdoc
-	 */
-	// public function beforeValidate() {
-	// 	return parent::beforeValidate() && $this->setUploadedFiles();
-	// }
-
-	/**
-	 * Check active FileValidator and set UploadedFile object to attributes
-	 *
-	 * @since 0.0.1
-	 * @return {boolean}
-	 */
-	// private function setUploadedFiles() {
-	// 	$scenario = $this->getScenario();
-	// 	foreach($this->getValidators() as $validator) {
-	// 		if($validator instanceof FileValidator && $validator->isActive($scenario)) {
-	// 			$this->_activeFileValidator = $validator;
-	// 		}
-	// 	}
-
-	// 	if($this->_activeFileValidator) {
-	// 		foreach($this->_activeFileValidator->attributes as $attribute) {
-	// 			$this->$attribute = $this->_activeFileValidator->maxFiles === 1 ? UploadedFile::getInstance($this, $attribute) : UploadedFile::getInstances($this, $attribute);
-	// 		}
-	// 	}
-
-	// 	return true;
-	// }
-
-	/**
-	 * Save uploaded files
-	 *
-	 * @since 0.0.1
-	 * @return {boolean}
-	 */
-	// public function saveUploadedFiles() {
-	// 	if($this->_activeFileValidator) {
-	// 		foreach($this->_activeFileValidator->attributes as $attribute) {
-	// 			if($this->_activeFileValidator->maxFiles === 1) {
-	// 				$file = $this->$attribute;
-	// 				$file->saveAs('assets/' . $file->baseName . '.' . $file->extension);
-	// 			} else {
-	// 				foreach($this->$attribute as $file) {
-	// 					$file->saveAs('assets/' . $file->baseName . '.' . $file->extension);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-
-	// 	return true;
-	// }
 
 	/**
 	 * Returns the first error's attribute name
