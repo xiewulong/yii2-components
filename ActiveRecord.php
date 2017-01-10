@@ -4,8 +4,8 @@
  * xiewulong <xiewulong@vip.qq.com>
  * https://github.com/xiewulong/yii2-components
  * https://raw.githubusercontent.com/xiewulong/yii2-components/master/LICENSE
- * create: 2016/8/7
- * update: 2016/12/14
+ * create: 2016/08/07
+ * update: 2017/01/07
  * since: 0.0.1
  */
 
@@ -13,6 +13,7 @@ namespace yii\components;
 
 use Yii;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\validators\RangeValidator;
 
@@ -240,6 +241,24 @@ class ActiveRecord extends \yii\db\ActiveRecord {
 		$firstErrors = $this->firstErrors;
 
 		return array_shift($firstErrors);
+	}
+
+	/**
+	 * Returns attribute data for vue by json
+	 *
+	 * @since 0.0.1
+	 * @param {string} $attribute
+	 * @return {string}
+	 */
+	public function getAttributeForVue($attribute) {
+		return [
+			'name' => Html::getInputName($this, $attribute),
+			'value' => $this->$attribute,
+			'id' => Html::getInputId($this, $attribute),
+			'label' => $this->getAttributeLabel($attribute),
+			'hint' => $this->getAttributeHint($attribute),
+			'error' => $this->isFirstErrorAttribute($attribute),
+		];
 	}
 
 }
